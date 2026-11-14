@@ -26,3 +26,30 @@ python src/check_setup.py
 ```
 
 Get an API key at https://platform.armoriq.ai. Never commit `.env`.
+
+## Run the demos
+
+**1. SDK: planned call allowed, unplanned call blocked.** Needs `ARMORIQ_API_KEY` and `ARMORIQ_AGENT_ID` (the agent's *name* from the console) in `.env`, and an active policy for that agent:
+
+```yaml
+spec:
+  tools:
+    default: block
+    rules:
+      get_weather: allow
+```
+
+```bash
+python src/hello_sdk.py
+```
+
+Expected: `get_weather -> ALLOWED allow:get_weather#0` and `send_email -> BLOCK tool-not-in-plan`.
+
+**2. Intent Gateway: a tool call stripped in enforce mode.** Needs `ARMORIQ_GATEWAY_URL` (console → Gateway) and a model key, e.g. a free `GEMINI_API_KEY`:
+
+```bash
+python src/gateway_test.py --tricked --record   # record only: both calls pass
+python src/gateway_test.py --tricked            # enforce: send_email blocked
+```
+
+**3. ArmorClaude** (Claude Code plugin): see `playground/README.md` and the step 6 entries in `notes/LEARNING_LOG.md`.
