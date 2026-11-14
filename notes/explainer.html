@@ -1,0 +1,333 @@
+<title>ArmorIQ Field Notes</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single reading column, each section a "checkpoint" the reader can poke at. */
+:root{
+  --bg:#f3f5f8; --surface:#ffffff; --ink:#0f1b2d; --muted:#55657d; --line:#d9e0ea;
+  --accent:#2f5bea; --accent-soft:#e6ecff;
+  --allow:#0f8a5f; --allow-soft:#dcf3ea; --block:#c8323a; --block-soft:#fbe3e4; --hold:#b7791f; --hold-soft:#fbefd9;
+  --code-bg:#0f1b2d; --code-fg:#dbe5ff;
+  --f-display:"Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0b1220; --surface:#121b2e; --ink:#e7edf7; --muted:#9aa8bf; --line:#24314a;
+  --accent:#7d9bff; --accent-soft:#1c2a4d;
+  --allow:#3ccf95; --allow-soft:#123327; --block:#ff6b72; --block-soft:#3a1a1e; --hold:#f2b552; --hold-soft:#3a2c12;
+  --code-bg:#060b16; --code-fg:#cfe0ff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1220; --surface:#121b2e; --ink:#e7edf7; --muted:#9aa8bf; --line:#24314a;
+  --accent:#7d9bff; --accent-soft:#1c2a4d;
+  --allow:#3ccf95; --allow-soft:#123327; --block:#ff6b72; --block-soft:#3a1a1e; --hold:#f2b552; --hold-soft:#3a2c12;
+  --code-bg:#060b16; --code-fg:#cfe0ff; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 64px}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:56px}
+h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(2rem,5vw,3.1rem)} h2{font-size:1.6rem} h3{font-size:1.1rem}
+p{margin:0;max-width:65ch}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.lead{font-size:1.15rem;color:var(--muted)}
+section{display:flex;flex-direction:column;gap:18px}
+code,.mono{font-family:var(--f-mono);font-size:.88em}
+button{font:inherit;cursor:pointer}
+button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* hero */
+.hero{display:flex;flex-direction:column;gap:16px}
+.motto{display:inline-flex;gap:10px;align-items:center;flex-wrap:wrap;font-family:var(--f-display);font-size:1.25rem}
+.motto .no{color:var(--block);text-decoration:line-through}
+.motto .yes{color:var(--allow)}
+
+/* analogy strip */
+.analogy{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.analogy div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.analogy b{font-family:var(--f-display)}
+.analogy span{color:var(--muted);font-size:.95rem}
+@media (max-width:640px){.analogy{grid-template-columns:1fr}}
+
+/* simulator */
+.sim{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:18px}
+.plan{border:1px dashed var(--accent);background:var(--accent-soft);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.plan .seal{font-family:var(--f-mono);font-size:.75rem;color:var(--accent)}
+.locks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.locks{grid-template-columns:1fr}}
+.lock{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--bg);text-align:left;color:var(--ink)}
+.lock .dot{width:14px;height:14px;border-radius:50%;margin-top:4px;flex:none;background:var(--block)}
+.lock[aria-pressed="true"] .dot{background:var(--allow)}
+.lock small{display:block;color:var(--muted);font-size:.82rem}
+.calls{display:flex;gap:10px;flex-wrap:wrap}
+.call{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:8px 16px;font-family:var(--f-mono);font-size:.9rem}
+.call:hover{border-color:var(--accent)}
+.verdict{border-radius:10px;padding:14px 16px;font-family:var(--f-mono);font-size:.88rem;display:flex;flex-direction:column;gap:6px;min-height:84px;overflow-wrap:anywhere}
+.verdict .tag{font-family:var(--f-display);font-size:1.3rem;font-weight:700}
+.v-allow{background:var(--allow-soft);color:var(--allow)}
+.v-block{background:var(--block-soft);color:var(--block)}
+.v-idle{background:var(--bg);color:var(--muted);border:1px dashed var(--line)}
+.verdict .why{color:var(--ink);font-family:var(--f-body);font-size:.92rem}
+
+/* products */
+.products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.products{grid-template-columns:1fr}}
+details.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+details.card summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:10px;align-items:center}
+details.card summary::-webkit-details-marker{display:none}
+details.card summary::after{content:"+";font-family:var(--f-mono);color:var(--accent);font-size:1.2rem}
+details.card[open] summary::after{content:"–"}
+details.card .body{padding-top:10px;display:flex;flex-direction:column;gap:8px;color:var(--muted);font-size:.95rem}
+.pill{font-family:var(--f-mono);font-size:.7rem;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.pill.done{background:var(--allow-soft);color:var(--allow)} .pill.wip{background:var(--hold-soft);color:var(--hold)}
+
+/* journey */
+.journey{display:flex;flex-direction:column;gap:0;border-left:2px solid var(--line);margin-left:8px}
+.stop{position:relative;padding:0 0 22px 22px;display:flex;flex-direction:column;gap:6px}
+.stop::before{content:"";position:absolute;left:-8px;top:6px;width:14px;height:14px;border-radius:50%;background:var(--surface);border:3px solid var(--accent)}
+.stop.bad::before{border-color:var(--block)} .stop.good::before{border-color:var(--allow)}
+.stop .err{font-family:var(--f-mono);font-size:.82rem;background:var(--code-bg);color:var(--code-fg);border-radius:8px;padding:8px 10px;overflow-x:auto;white-space:pre}
+.stop p{color:var(--muted)}
+.counter{font-family:var(--f-display);font-size:1rem;color:var(--muted)}
+.counter b{color:var(--block);font-size:1.6rem}
+
+/* gaps */
+.gaps{display:flex;flex-direction:column;gap:12px}
+.gap{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.gap header{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.sev{font-family:var(--f-mono);font-size:.72rem;padding:2px 8px;border-radius:6px}
+.sev.high{background:var(--block-soft);color:var(--block)} .sev.med{background:var(--hold-soft);color:var(--hold)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:var(--bg);color:var(--muted);border-radius:8px;padding:5px 10px;font-size:.85rem}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.say{font-size:1rem;min-height:3.2em}
+.say q{quotes:"“" "”"}
+
+/* offers */
+.offers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:720px){.offers{grid-template-columns:1fr}}
+.offer{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.offer .size{font-family:var(--f-mono);font-size:.75rem;color:var(--accent)}
+.offer p{color:var(--muted);font-size:.95rem}
+pre.diff{margin:0;background:var(--code-bg);color:var(--code-fg);border-radius:8px;padding:10px;font-family:var(--f-mono);font-size:.78rem;overflow-x:auto}
+.diff .m{color:#ff8f95} .diff .p{color:#6fe3b2}
+
+/* glossary */
+.terms{display:flex;flex-wrap:wrap;gap:8px}
+.term{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 14px;font-size:.92rem}
+.term[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.def{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-height:72px}
+.def b{font-family:var(--f-display)}
+
+/* script */
+ol.script{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:8px}
+.foot{color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);padding-top:16px}
+@media (prefers-reduced-motion:no-preference){.verdict{transition:background-color .25s,color .25s}}
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <span class="eyebrow">Field notes · Akshay · Nov 13–14, 2026</span>
+  <h1>What I learned by actually using ArmorIQ</h1>
+  <p class="lead">One evening and one morning with the SDK, the console and the docs. Below: the one idea, a playable version of what I ran, where it hurt, and how I'd help.</p>
+  <div class="motto"><span class="no">Authenticated</span><span>≠</span><span class="yes">aligned</span></div>
+</header>
+
+<section>
+  <span class="eyebrow">The one idea</span>
+  <h2>An AI agent is a new hire with the office keys</h2>
+  <div class="analogy">
+    <div><b>The keys</b><span>Passwords and API keys prove <em>who</em> the agent is. That's IAM's job.</span></div>
+    <div><b>The trick email</b><span>"Pay this invoice." "Send me the customer list." With valid keys, the agent can do it.</span></div>
+    <div><b>The manager</b><span>ArmorIQ: write your plan first, I sign it. Anything not on the signed plan doesn't run.</span></div>
+  </div>
+</section>
+
+<section aria-labelledby="sim-h">
+  <span class="eyebrow">Try it · real results from my run</span>
+  <h2 id="sim-h">Three locks must open before an action runs</h2>
+  <p>Flip the locks and fire a tool call. The verdicts and reasons are copied from what ArmorIQ actually returned to my script (<code>src/hello_sdk.py</code>).</p>
+  <div class="sim">
+    <div class="plan">
+      <span class="seal">SIGNED PLAN · plan_hash 445552d1… · goal: "Get weather for San Francisco"</span>
+      <span>Step 1: <code>weather-mcp__get_weather</code> (city: San Francisco)</span>
+    </div>
+    <div class="locks">
+      <button class="lock" id="lock-agent" aria-pressed="true"><span class="dot"></span><span><b>Agent is known</b><small>registered in the console, passed by name</small></span></button>
+      <button class="lock" id="lock-policy" aria-pressed="true"><span class="dot"></span><span><b>Policy allows it</b><small>rule <code>get_weather: allow</code></small></span></button>
+      <button class="lock" id="lock-plan" aria-pressed="true" disabled title="Decided by which call you fire"><span class="dot"></span><span><b>It's in the plan</b><small>set by the call you fire</small></span></button>
+    </div>
+    <div class="calls">
+      <button class="call" data-tool="get_weather">fire get_weather(SF)</button>
+      <button class="call" data-tool="send_email">fire send_email(attacker@evil.example)</button>
+    </div>
+    <div class="verdict v-idle" id="verdict" aria-live="polite"><span class="tag">Waiting</span><span class="why">Fire a call to see ArmorIQ's decision.</span></div>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">The map</span>
+  <h2>Where ArmorIQ sits</h2>
+  <p>Same policies, enforced at different points in an agent's path. Tap a card.</p>
+  <div class="products">
+    <details class="card"><summary><h3>SDK (Python / TS)</h3><span class="pill done">tried ✓</span></summary>
+      <div class="body"><p>Enforcement inside your own code. The agent's plan is captured and signed, then every tool call is checked against it.</p><p><b>Analogy:</b> the manager sitting next to the employee's desk.</p></div></details>
+    <details class="card"><summary><h3>Intent Gateway</h3><span class="pill done">tried ✓</span></summary>
+      <div class="body"><p>Change one base URL in your OpenAI / Anthropic / Gemini client. The gateway checks every tool call the model returns and strips blocked ones. Has a <b>Monitor mode</b>: see what would be blocked before turning it on.</p><p><b>Analogy:</b> a security desk at the building entrance.</p>
+      <p><b>My run</b> (free Gemini key, zero ArmorIQ code, same policy as the SDK):</p>
+      <div class="stop" style="padding:0"><div class="err">record only:  get_weather ✓   send_email ✓
+enforce:      get_weather ✓   send_email ✗
+"Tool call "send_email" was blocked by policy: block:tools.default"</div></div>
+      <p>Worked exactly as the docs say. The smoothest product I tried.</p></div></details>
+    <details class="card"><summary><h3>ArmorTools (ArmorClaude…)</h3><span class="pill wip">in progress</span></summary>
+      <div class="body"><p>Plugins for coding assistants (Claude Code, Codex, Gemini CLI). A record of every action, and rules to allow, hold or block tools or lock a folder.</p><p><b>Analogy:</b> a dashcam plus a seatbelt for your coding agent.</p></div></details>
+    <details class="card"><summary><h3>Intent Container</h3><span class="pill">read only</span></summary>
+      <div class="body"><p>Enforcement down at the operating system: files, processes, network. Child processes inherit the limits. Available on NVIDIA OpenShell; Linux, Docker and Google Agent Substrate in preview.</p><p><b>Analogy:</b> locks on every door inside the building, not just the entrance.</p></div></details>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">The journey</span>
+  <h2>From sign-up to first "allowed"</h2>
+  <p class="counter">Workarounds needed: <b>5</b></p>
+  <div class="journey">
+    <div class="stop good"><h3>Signed up, created an API key</h3><p>Smooth. The key was accepted: ArmorIQ signed my first plan.</p></div>
+    <div class="stop bad" data-w="1"><h3>Ran the docs quickstart as written</h3><div class="err">MCPInvocationException ... /invoke (HTTP 500): Internal Proxy Error</div><p>Allowed and blocked calls looked identical. The real reason was hidden: no agent registered.</p></div>
+    <div class="stop bad" data-w="1"><h3>Switched to the session API</h3><div class="err">ValueError: Tool "get_weather" is not namespaced as &lt;MCP&gt;__&lt;action&gt;</div><p>The docs example uses bare names. Renamed to <code>weather-mcp__get_weather</code>.</p></div>
+    <div class="stop good"><h3>First real block</h3><div class="err">send_email -&gt; BLOCK  tool-not-in-plan</div><p>The core idea worked on the first honest try.</p></div>
+    <div class="stop bad" data-w="1"><h3>Registered an agent</h3><div class="err">url must be a URL address. url should not be empty</div><p>The wizard says manual agents don't need a URL, then the server demands one. Used the URL method with a placeholder.</p></div>
+    <div class="stop bad" data-w="1"><h3>Used the agent ID from the console</h3><div class="err">agent_unresolved: no registered agent matches '1e849d07-…'</div><p>The SDK wants the agent's <b>name</b>, not the ID the console shows.</p></div>
+    <div class="stop bad" data-w="1"><h3>Tried to attach a policy</h3><div class="err">At least one governed tool is required
+AttributeError: 'ArmorIQSession' object has no attribute 'client'</div><p>The agent had "no tools yet", and the SDK method to declare tools crashes on a typo. Wrote the rule by hand in YAML.</p></div>
+    <div class="stop good" data-w="1"><h3>It works</h3><div class="err">get_weather -&gt; ALLOWED  allow:get_weather#0
+send_email  -&gt; BLOCK    tool-not-in-plan</div><p>Same key, same agent, same user. One allowed, one refused.</p></div>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">For the meeting</span>
+  <h2>Gaps, framed kindly</h2>
+  <p>Each gap has three lines to say. Click through them.</p>
+  <div class="gaps" id="gaps"></div>
+</section>
+
+<section>
+  <span class="eyebrow">How I'd help</span>
+  <h2>Contribution offers</h2>
+  <div class="offers">
+    <div class="offer"><span class="size">Today · one line</span><h3>Fix the SDK tool-declaration crash</h3>
+      <pre class="diff"><span class="m">- declare_model_tools(self.client, tools)</span>
+<span class="p">+ declare_model_tools(self._client, tools)</span></pre>
+      <p>Plus a unit test that calls it. Unblocks the agent's tool inventory in Policy Studio.</p></div>
+    <div class="offer"><span class="size">A week</span><h3>A quickstart that runs end to end</h3><p>A hosted demo MCP, "register an agent" as step 0, and clear 4xx errors instead of HTTP 500. Then a CI job that runs every docs snippet against the real SDK.</p></div>
+    <div class="offer"><span class="size">Ongoing</span><h3>Prompt-injection test kit</h3><p>Poisoned emails, pages and docs fed to a small agent, with a report of which injected actions ArmorIQ blocked. Could seed the public benchmarks the space is missing.</p></div>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">Words they use</span>
+  <h2>Mini glossary</h2>
+  <div class="terms" id="terms"></div>
+  <div class="def" id="def" aria-live="polite"><b>Tap a word.</b></div>
+</section>
+
+<section>
+  <span class="eyebrow">Cheat sheet</span>
+  <h2>My 2-minute walkthrough</h2>
+  <ol class="script">
+    <li>"Authenticated doesn't mean aligned." The keys say who; ArmorIQ asks whether this action belongs to this task.</li>
+    <li>Show <code>hello_sdk.py</code>: the plan has one step, <code>get_weather</code>.</li>
+    <li>Run it: <code>get_weather</code> allowed by rule <code>allow:get_weather#0</code>; <code>send_email</code> blocked as <code>tool-not-in-plan</code>.</li>
+    <li>Point out it's fail-closed: when ArmorIQ isn't sure (unknown agent, no policy), the answer is no.</li>
+    <li>"Getting here took five workarounds. Here's the list, and here's the one-line fix I'd start with."</li>
+  </ol>
+</section>
+
+<p class="foot">Sources: my own runs of armoriq-sdk 0.8.18 (Python 3.13), platform.armoriq.ai screenshots, and docs.armoriq.ai as of Nov 13, 2026. Full notes in <code>notes/LEARNING_LOG.md</code> and <code>notes/GAPS.md</code>.</p>
+</div>
+
+<script>
+(function(){
+  // ---- three-locks simulator (outcomes mirror real SDK responses) ----
+  const agent=document.getElementById('lock-agent'), policy=document.getElementById('lock-policy'), plan=document.getElementById('lock-plan');
+  const out=document.getElementById('verdict');
+  [agent,policy].forEach(b=>b.addEventListener('click',()=>b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')==='true'?'false':'true')));
+  function show(kind,tag,code,why){out.className='verdict '+(kind==='allow'?'v-allow':'v-block');
+    out.innerHTML='';const t=document.createElement('span');t.className='tag';t.textContent=tag;
+    const c=document.createElement('span');c.textContent=code;const w=document.createElement('span');w.className='why';w.textContent=why;
+    out.append(t,c,w);}
+  document.querySelectorAll('.call').forEach(btn=>btn.addEventListener('click',()=>{
+    const tool=btn.dataset.tool, inPlan=tool==='get_weather';
+    plan.setAttribute('aria-pressed',inPlan?'true':'false');
+    const a=agent.getAttribute('aria-pressed')==='true', p=policy.getAttribute('aria-pressed')==='true';
+    if(!inPlan) return show('block','BLOCK',"reason: tool-not-in-plan: 'weather-mcp__send_email' was not declared in the captured plan","Not on the signed plan, so it never runs. Valid key or not.");
+    if(!a) return show('block','BLOCK',"reason: agent_unresolved: no registered agent matches …","ArmorIQ doesn't know which agent is asking. When unsure, it says no (fail-closed).");
+    if(!p) return show('block','BLOCK',"reason: no_active_policy","Agent known, but no rule allows anything yet. Default is deny.");
+    show('allow','ALLOWED',"reason: allow:get_weather#0","On the plan, agent known, policy rule allows it. All three locks open.");
+  }));
+
+  // ---- gaps with three talking lines each ----
+  const gaps=[
+    {t:"The quickstart doesn't run on a fresh account",s:"high",
+     n:"Copying the SDK quickstart exactly gave HTTP 500 'Internal Proxy Error' for both the allowed and the blocked call.",
+     q:"How are you thinking about the first five minutes for a new developer? Is there a hosted demo MCP planned?",
+     h:"I'd love to help build a quickstart that runs end to end, with clear 4xx errors like agent_unresolved."},
+    {t:"Manual agent registration fails",s:"high",
+     n:"The Add Agent wizard says a manual agent needs no URL, then Register fails with 'url should not be empty'.",
+     q:"Is the manual path meant for SDK-only agents? Should the backend accept an empty URL there?",
+     h:"I can write up the repro with screenshots, and help with a fix plus a test for that path."},
+    {t:"Agent ID vs agent name",s:"med",
+     n:"The console shows a UUID, but the SDK only resolved the agent when I passed its name.",
+     q:"Which identifier is canonical for SDK users?",
+     h:"A copy button labelled 'SDK agent id' in the console would remove the guesswork. Happy to draft the docs."},
+    {t:"No-policy behaviour differs",s:"med",
+     n:"The wizard says 'calls are logged but unrestricted' with no policy; the gateway docs agree. The SDK blocks with no_active_policy.",
+     q:"Is deny-by-default the intended SDK behaviour? Should the wizard text say so?",
+     h:"I can line up the behaviour across SDK, gateway and wizard in a short matrix for the docs."},
+    {t:"SDK crash when declaring tools",s:"med",
+     n:"session.declare_model_tools() raises AttributeError: self.client should be self._client. The fallback route returns 400 invalid_body.",
+     q:"How do SDK-only agents get their tools into Policy Studio today?",
+     h:"The one-line fix plus a test is a contribution I can open today."},
+    {t:"Re-planning agents are barely documented",s:"med",
+     n:"The SDK has reanchor() and refine(), and tokens default to 60 seconds, but the docs say almost nothing about them.",
+     q:"How do you keep the objective fixed while a long-running agent changes its route?",
+     h:"I'd love to write a 'long-running and re-planning agents' guide while learning it."}
+  ];
+  const box=document.getElementById('gaps');
+  gaps.forEach((g,i)=>{
+    const el=document.createElement('article');el.className='gap';
+    el.innerHTML=`<header><h3></h3><span class="sev ${g.s}">${g.s==='high'?'high impact':'medium'}</span></header>
+      <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-k="n" id="g${i}n">I noticed…</button><button role="tab" aria-selected="false" data-k="q" id="g${i}q">How are you thinking…?</button><button role="tab" aria-selected="false" data-k="h" id="g${i}h">I'd love to help…</button></div>
+      <p class="say"></p>`;
+    el.querySelector('h3').textContent=g.t;
+    const say=el.querySelector('.say');say.textContent=g.n;
+    el.querySelectorAll('[role=tab]').forEach(b=>b.addEventListener('click',()=>{
+      el.querySelectorAll('[role=tab]').forEach(x=>x.setAttribute('aria-selected','false'));
+      b.setAttribute('aria-selected','true');say.textContent=g[b.dataset.k];}));
+    box.append(el);
+  });
+
+  // ---- glossary ----
+  const terms={
+    "Intent":"The task's purpose, treated as fixed. The route can change; the goal can't.",
+    "Plan":"The list of steps the agent says it will take, written down before it acts.",
+    "Intent token":"ArmorIQ's signature on the plan. Short-lived (60 seconds by default in the SDK). Every tool call is checked against it.",
+    "Policy":"Org rules on top of the plan: which tools an agent may use, for whom, and when. Allow, hold or block.",
+    "Fail-closed":"When ArmorIQ can't decide (unknown agent, no policy, service unreachable), the action is refused, not let through.",
+    "Hold":"Pause the action until a human approves. On the gateway today, a hold acts like a block.",
+    "MCP":"Model Context Protocol: a standard way for AI agents to call tools and servers.",
+    "Prompt injection":"Hidden instructions in an email, web page or doc that try to make the agent do something else.",
+    "Monitor mode":"Gateway setting that checks every call and reports what would be blocked, without stopping anything."
+  };
+  const tbox=document.getElementById('terms'), def=document.getElementById('def');
+  Object.keys(terms).forEach(k=>{const b=document.createElement('button');b.className='term';b.textContent=k;b.setAttribute('aria-pressed','false');
+    b.addEventListener('click',()=>{tbox.querySelectorAll('.term').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');
+      def.innerHTML='';const h=document.createElement('b');h.textContent=k+'. ';def.append(h,document.createTextNode(terms[k]));});
+    tbox.append(b);});
+
+})();
+</script>

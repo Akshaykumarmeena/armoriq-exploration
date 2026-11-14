@@ -127,3 +127,24 @@ Format for each item: **Where** · **Expected** · **What happened** · **Sugges
 - No public reference for the v2 `rules` syntax that I could find in `llms-full.txt`.
 - **Suggested fix:** a policy format reference page for v2 with an allow/block example.
 - **Severity:** medium (also listed as a known gap in my research)
+
+## ArmorClaude installer review (read, not yet run)
+
+### 21. Installer approves on platform.armoriq.ai, docs say tools.armoriq.ai
+- **Where:** `install_armorclaude.sh` (sha256 `b0eb4633…f93b1`, 741 lines) sets `DEFAULT_DASHBOARD_URL="https://platform.armoriq.ai"` and the device-approval host `platform.armoriq.ai`; `/tools/quickstart` says "You need an account at tools.armoriq.ai".
+- **Suggested fix:** say which console ArmorClaude actually reports to; if both, explain the relationship.
+- **Severity:** low–medium
+
+### 22. Installer installs a Node `armoriq` CLI that the docs call "on the roadmap"
+- **Where:** script runs `npm install -g @armoriq/sdk@latest` and uses `armoriq login`; `/sdk/installation` says a Node-native CLI "is on the roadmap" and Python is "the only way to get `armoriq` on your $PATH".
+- **Effect:** two different `armoriq` binaries (Python in a venv, Node global) can shadow each other.
+- **Severity:** low
+
+### Praise worth saying in the meeting
+- The installer is careful: refuses `sudo`, rolls back only what it created, validates the device-approval URL against an allow-list before opening it, writes credentials atomically with `0600`, and works around git `insteadOf` SSH rewrites. Good engineering.
+
+## Step 4 hands-on (Gateway)
+
+### 23. Gateway worked as documented (praise)
+- Record vs enforce behaved exactly as described; the block note (`Tool call "send_email" was blocked by policy: block:tools.default`) is clear. Provider errors pass through untouched, and `502 upstream provider unavailable` was accurate (Google itself was returning 503).
+- Tiny suggestion: the Gemini example in the quickstart names no model; Google retires model names for new users fast (`gemini-2.5-flash` → 404). A note "use any current Gemini model name" would save a minute.

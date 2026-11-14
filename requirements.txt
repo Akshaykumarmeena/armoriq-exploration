@@ -1,2 +1,3 @@
 armoriq-sdk==0.8.18
 python-dotenv>=1.0
+openai>=1.0  # Intent Gateway test (Gemini via OpenAI SDK)
