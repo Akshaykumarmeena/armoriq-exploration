@@ -42,3 +42,57 @@ Everything else matched: gateway URLs and record vs enforce, verdicts, 120 polic
 - Intent tokens live 60 s by default: long-running agents must re-mint often.
 
 - Next: step 3, SDK hello world (one allowed call, one blocked call).
+
+## 2026-11-13: Step 3, SDK hello world (part 1: before registering an agent)
+
+Script: `src/hello_sdk.py`. Run with `.venv/bin/python src/hello_sdk.py`.
+
+**Attempt 1: the docs quickstart as written** (`capture_plan` → `get_intent_token` → `invoke` on `weather-mcp`)
+- `capture_plan` and `get_intent_token` worked: ArmorIQ returned a signed token (`plan_hash`, signature, expiry). **So my API key is valid.**
+- Inside the token, `policy_validation` already said: `validated: False`, `denied_tools: ['get_weather']`, `reason: agent_unresolved`.
+- Both `invoke` calls (the planned `get_weather` and the unplanned `send_email`) failed the same way:
+  `MCPInvocationException: ... https://proxy.armoriq.ai/invoke (HTTP 500): 'Internal Proxy Error'`.
+  So the "blocked" call and the "allowed" call looked identical. No clean "not in plan" message.
+
+**Attempt 2: the session API** (`client.for_user(email).start_session()` → `start_plan` → `check`)
+- First error: `ValueError: Tool "get_weather" is not namespaced as <MCP>__<action> and no default_mcp_name was set`. Tool names must be `weather-mcp__get_weather`.
+- Then:
+  ```
+  weather-mcp__get_weather  -> BLOCK  reason: agent_unresolved: pass agent_id (or set AGENT_ID) to decide calls in local mode
+  weather-mcp__send_email   -> BLOCK  reason: tool-not-in-plan: 'weather-mcp__send_email' was not declared in the captured plan
+  ```
+- **The core idea works:** the unplanned `send_email` is refused with a clear reason, even though my API key is valid.
+- But the planned call is also refused, because no agent is registered. Fail-closed, which is correct security behaviour, but surprising after docs that say "no user/agent IDs to manage".
+
+**Learned:** the SDK needs an agent registered in the console (and its id passed as `agent_id` / `AGENT_ID`) before anything is allowed.
+
+- Next: register an agent in the console, put its id in `.env` as `ARMORIQ_AGENT_ID`, re-run.
+
+## 2026-11-13: Step 3, part 2: registering an agent
+
+- Console → Inventory → Agents → Add AI agent, Manual method. **Register failed:** `url must be a URL address. url should not be empty`, although the wizard says manual agents need no URL (GAPS #14). Workaround: the URL-based method with `https://example.com` → agent `hello-weather-agent` registered.
+- Put the console's agent UUID in `.env` → still `agent_unresolved: no registered agent matches '<uuid>'`.
+- Tried `agent_id="hello-weather-agent"` (the name) → resolved. New reason: `no_active_policy`, planned call still blocked (GAPS #15, #16).
+- Learned: the SDK is deny-by-default. To allow anything you need: a registered agent (by name) **and** an active policy **and** the action in the signed plan. Three locks, all must open.
+- CLI `armoriq policy templates` lists ready policies (all-allow, strict-read-only, balanced, lockdown…), but `policy show/set` needs `armoriq login`.
+
+## 2026-11-14: Step 3, part 3: it works
+
+- Policy Studio form wouldn't activate ("At least one governed tool is required"; agent had "No tools yet"). Wrote the rule by hand in the **YAML** tab:
+  ```yaml
+  spec:
+    tools:
+      default: block
+      rules:
+        get_weather: allow
+  ```
+  Activated fine.
+- Re-ran `ARMORIQ_AGENT_ID=hello-weather-agent .venv/bin/python src/hello_sdk.py`:
+  ```
+  1. Plan signed: ... server policy check: validated=True reason=None
+  weather-mcp__get_weather  -> ALLOWED  reason: allow:get_weather#0
+  weather-mcp__send_email   -> BLOCK    reason: tool-not-in-plan: 'weather-mcp__send_email' was not declared in the captured plan
+  ```
+- **This is the core ArmorIQ idea working end to end:** same API key, same agent, same user. The planned action is allowed by policy rule `allow:get_weather#0`; the unplanned one is refused because it isn't in the signed plan.
+- Policy rules key on the bare action name (`get_weather`), while the session API wants `<mcp>__<action>` (`weather-mcp__get_weather`).
+- Getting here from a fresh account took ~6 workarounds (GAPS #9–#20). Time from signup to first "allowed": about one evening.
