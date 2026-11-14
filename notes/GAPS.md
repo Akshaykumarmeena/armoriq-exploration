@@ -148,3 +148,35 @@ Format for each item: **Where** · **Expected** · **What happened** · **Sugges
 ### 23. Gateway worked as documented (praise)
 - Record vs enforce behaved exactly as described; the block note (`Tool call "send_email" was blocked by policy: block:tools.default`) is clear. Provider errors pass through untouched, and `502 upstream provider unavailable` was accurate (Google itself was returning 503).
 - Tiny suggestion: the Gemini example in the quickstart names no model; Google retires model names for new users fast (`gemini-2.5-flash` → 404). A note "use any current Gemini model name" would save a minute.
+
+## Step 6 hands-on (ArmorClaude)
+
+### 24. "ENFORCING, intent=required" but tools run without a registered plan
+- **Where:** fresh Claude Code session with ArmorClaude 0.2.9, no policy chosen yet.
+- **Expected:** per the session banner and the `register_intent_plan` tool description ("Without a registered plan, all tool calls will be blocked"), a `Read` without a plan is blocked.
+- **What happened:** the session never registered a plan and its `Read` succeeded.
+- **Suggested fix:** if no-policy means permissive, say "watch-only until you pick a policy" in the banner; otherwise enforce intent as advertised.
+- **Severity:** medium (a user might believe they're protected)
+
+### 25. Block message names an opaque rule id: "policy forbid: policy4"
+- **What happened:** the Write block said `ArmorClaude policy forbid: policy4`. Neither the user nor Claude could tell which rule that is (the statement in the proposal had a different, readable shape). The Gateway's note (`block:tools.default`) and the SDK's (`allow:get_weather#0`, `tool-not-in-plan: …`) are much clearer.
+- **Suggested fix:** include the rule's human description in the message, e.g. `forbid: deny Write and Edit (policy v1, statement policy4)`.
+- **Severity:** low–medium (explainability is the product's selling point)
+
+### 26. Two sources of truth for the ArmorClaude policy
+- After `/armor yes`: "applies to the current session… sent to the dashboard as a proposal: confirm it there or the next session will pull the dashboard's active policy over it." So a rule confirmed in the terminal can silently disappear next session unless also confirmed in the web console.
+- **Suggested fix:** make terminal confirmation authoritative for a personal workspace, or warn at the next SessionStart that the local rule was replaced.
+- **Severity:** medium
+
+### 27. "Deny Write and Edit" doesn't cover file writes through the shell
+- **Where:** policy v1 (`deny Write and Edit, hold Bash`) active; a second, already-running Claude Code session in auto mode.
+- **Expected:** no file in the workspace changes while Write/Edit are denied, or at least the shell command is held for approval (`hold Bash`).
+- **What happened:** `cat >> notes/LEARNING_LOG.md <<EOF …` via Bash appended to two files without being held. Moments later the `Edit` tool on another file was blocked (`policy forbid: policy5`). So the rule matches the *tool name*, not the *effect* (a file write). The Bash hold may have been auto-approved by Claude Code's auto mode rather than by the human.
+- **Why it matters:** an injected instruction only needs to say "use the shell" to get around a tool-name rule. This is exactly what the Intent Container (OS-level enforcement) is for.
+- **Suggested fix:** for coding agents, classify Bash commands by effect (writes/deletes/network) and apply the Write/Edit rules to them; say clearly in the docs that tool rules are name-based; make `hold` require the human even in auto mode.
+- **Severity:** high (the strongest finding so far)
+
+### 28. Switching template needs a separate confirm, and nothing says so in the session
+- After the first attempt to switch to `all-allow`, `policy_read` still showed v1 (to verify: whether the template alone was run, or `/armor yes` was missing). After `template all-allow` + `/armorclaude:armor yes` it became v2 (`reason: template All Allow`). Consistent with policy add, but easy to miss.
+- **Suggested fix:** the template command could print "Proposed. Run /armor yes to apply."
+- **Severity:** low

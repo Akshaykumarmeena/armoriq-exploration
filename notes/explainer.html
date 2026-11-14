@@ -183,8 +183,14 @@ ol.script{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:8px
 enforce:      get_weather ✓   send_email ✗
 "Tool call "send_email" was blocked by policy: block:tools.default"</div></div>
       <p>Worked exactly as the docs say. The smoothest product I tried.</p></div></details>
-    <details class="card"><summary><h3>ArmorTools (ArmorClaude…)</h3><span class="pill wip">in progress</span></summary>
-      <div class="body"><p>Plugins for coding assistants (Claude Code, Codex, Gemini CLI). A record of every action, and rules to allow, hold or block tools or lock a folder.</p><p><b>Analogy:</b> a dashcam plus a seatbelt for your coding agent.</p></div></details>
+    <details class="card"><summary><h3>ArmorTools (ArmorClaude…)</h3><span class="pill done">tried ✓</span></summary>
+      <div class="body"><p>Plugins for coding assistants (Claude Code, Codex, Gemini CLI). A record of every action, and rules to allow, hold or block tools or lock a folder.</p><p><b>Analogy:</b> a dashcam plus a seatbelt for your coding agent.</p>
+      <p><b>My run</b> (Claude Code, sandbox folder with fake secrets):</p>
+      <div class="stop" style="padding:0"><div class="err">/armorclaude:armor policy add allow Read and Grep and Glob, deny Write and Edit, hold Bash
+Write(hello.txt)  ✗  ArmorClaude policy forbid: policy4
+ls                ⏸  held for approval, then ran</div></div>
+      <p>The Write was blocked <b>even though it was in Claude's own signed plan</b>: plan and policy are two separate checks. Only the human can confirm a policy; Claude can only propose one.</p>
+      <p><b>Rough edges:</b> the block names <code>policy4</code>, not the rule; a terminal rule is only a proposal on the dashboard; and "deny Write" didn't stop a file write done through the shell (<code>cat &gt;&gt; file</code>).</p></div></details>
     <details class="card"><summary><h3>Intent Container</h3><span class="pill">read only</span></summary>
       <div class="body"><p>Enforcement down at the operating system: files, processes, network. Child processes inherit the limits. Available on NVIDIA OpenShell; Linux, Docker and Google Agent Substrate in preview.</p><p><b>Analogy:</b> locks on every door inside the building, not just the entrance.</p></div></details>
   </div>
